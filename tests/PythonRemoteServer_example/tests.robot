@@ -20,4 +20,6 @@ Count Items in Directory
 
 Failing Example
     Strings Should Be Equal    Hello    Hello
-    Strings Should Be Equal    not      equal
+    #Strings Should Be Equal    not      equal
+    Run Keyword and Expect Error    Given strings are not equal.    Strings Should Be Equal    not      equal
+
