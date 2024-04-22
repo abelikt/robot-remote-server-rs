@@ -99,8 +99,10 @@ fn run_addone_handler(value: &Value) -> HandlerResult {
     Ok(response.try_to_value()?)
 }
 
-fn run_strings_should_be_equal(s1: &str, s2: &str) -> HandlerResult {
-    println!("Function Argument {:#?}", (s1, s2));
+fn run_strings_should_be_equal(value: &Value) -> HandlerResult {
+    let (s1, s2): (String, String) = TryFromValue::try_from_value(&value)?;
+
+    println!("Function Argument {:#?}", (&s1, &s2));
     use std::collections::HashMap;
     let mut response = HashMap::<&str, Value>::new();
 
@@ -109,7 +111,7 @@ fn run_strings_should_be_equal(s1: &str, s2: &str) -> HandlerResult {
     let output;
     let traceback = "nice traceback";
 
-    output = format!("Comparing '{}' to '{}'.", s1, s2);
+    output = format!("Comparing '{}' to '{}'.", &s1, &s2);
     response.insert("output", output.try_to_value()?);
 
     if s1 == s2 {
@@ -126,7 +128,10 @@ fn run_strings_should_be_equal(s1: &str, s2: &str) -> HandlerResult {
     Ok(response.try_to_value()?)
 }
 
-fn run_count_items_in_directory(_s1: &Vec<String>) -> HandlerResult {
+fn run_count_items_in_directory(value: &Value) -> HandlerResult {
+    let s1: Vec<String> = TryFromValue::try_from_value(&value).unwrap();
+    println!("Function Params {:#?}", s1);
+
     use std::collections::HashMap;
     let mut response = HashMap::<&str, Value>::new();
 
@@ -164,16 +169,9 @@ fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     if function == "Addone" {
         response = run_addone_handler(&method_params);
     } else if function == "Strings Should Be Equal" {
-        let (s1, s2): (String, String) = TryFromValue::try_from_value(&method_params)?;
-        println!("Function Params {:#?}", params);
-
-        response = run_strings_should_be_equal(&s1, &s2);
+        response = run_strings_should_be_equal(&method_params);
     } else if function == "Count Items In Directory" {
-        //let s1 : String = TryFromValue::try_from_value(&b)?;
-        let s1: Vec<String> = TryFromValue::try_from_value(&method_params).unwrap();
-        println!("Function Params {:#?}", params);
-        response = run_count_items_in_directory(&s1);
-        println!("Response {:#?}", response);
+        response = run_count_items_in_directory(&method_params);
     } else {
         response = Err(Fault::new(42, format!("Ooops keyword {}", function)));
     }
