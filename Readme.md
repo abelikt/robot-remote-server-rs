@@ -14,6 +14,12 @@ Official Docu:
 
 https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#remote-library-interface
 
+To-Dos
+======
+
+- Check what tests can we reuse from the Python reference implemenation
+- Add more tests / examples for scalars, lists and dicts
+- Implement dynamic dispatch
 
 Observed API calls
 ==================
