@@ -1,29 +1,6 @@
 // Based on code from dxr
 // https://github.com/ironthree/dxr/blob/main/dxr_tests/examples/server.rs
 
-//! # Simple example server
-//!
-//! Run this example with `cargo run --example server --features server`. It will listen on
-//! <http://0.0.0.0:3000> for incoming XML-RPC requests.
-//!
-//! Testing this local server is straightforward, either with the `client` example included
-//! in the `dxr_client` crate, or with three lines of python:
-//!
-//! ```python3
-//! >>> import xmlrpc.client
-//! >>> proxy = xmlrpc.client.ServerProxy("http://0.0.0.0:3000/")
-//! >>> proxy.hello("DXR")
-//! 'Handler type says: Hello, DXR!'
-//! >>> proxy.countme()
-//! 0
-//! >>> proxy.countme()
-//! 1
-//! >>> proxy.countme()
-//! 2
-//! >>> proxy.add(1, 2)
-//! 3
-//! ```
-
 /*
 
 https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#remote-library-interface
@@ -80,6 +57,7 @@ fn adder_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
 }
 
 //get_keyword_names
+
 fn get_keyword_names_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     println!("get_keyword_names_handler {:?}", params);
 
