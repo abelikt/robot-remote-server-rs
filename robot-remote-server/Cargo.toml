@@ -1,0 +1,13 @@
+[package]
+name = "robot-remote-server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dxr = { version = "0.6.2",features = ["derive", "multicall", "i8", "nil"] }
+dxr_server = {version = "0.6.2", features = ["multicall", "axum"] }
+
+chrono = { version = "0.4.19", features = ["clock"], default-features = false }
+tokio = { version = "1.14", features = ["macros", "rt-multi-thread", "signal", "time"] }
