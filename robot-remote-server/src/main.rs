@@ -111,13 +111,24 @@ fn run_strings_should_be_equal(s1: &str, s2: &str) -> HandlerResult {
     use std::collections::HashMap;
     let mut response = HashMap::<&str, Value>::new();
 
-    let status = if s1 == s2 { "PASS" } else { "FAIL" };
+    let status;
+    let error;
+    let output;
+    let traceback = "nice traceback";
+
+    output = format!("Comparing '{}' to '{}'.", s1, s2);
+    response.insert("output", output.try_to_value()?);
+
+    if s1 == s2 {
+        status = "PASS";
+    } else {
+        status = "FAIL";
+        error = "Given strings are not equal.";
+        response.insert("error", error.try_to_value()?);
+        response.insert("traceback", traceback.try_to_value()?);
+    };
 
     response.insert("status", status.try_to_value()?);
-    response.insert(
-        "output",
-        format!("Comparing '{}' to '{}'.", s1, s2).try_to_value()?,
-    );
 
     Ok(response.try_to_value()?)
 }
