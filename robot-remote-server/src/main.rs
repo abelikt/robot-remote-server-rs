@@ -70,7 +70,22 @@ fn get_keyword_names_handler(params: &[Value], _headers: HeaderMap) -> HandlerRe
     Ok(response.try_to_value()?)
 }
 
-fn run_adder_handler(argument: i32) -> HandlerResult {
+fn run_addone_handler(value: &Value) -> HandlerResult {
+    TryFromValue::try_from_value(&value).unwrap_or_else(|_| println!("Oh-no, conversion failed"));
+    let params: Vec<i32> = TryFromValue::try_from_value(&value)?;
+    /*let params: Vec<i32>;
+    match TryFromValue::try_from_value(&value) {
+        Result(x) => {params=x},
+        DxrError(x) => {
+            println!("Conversion run_addone_handler error: {x}");
+            return DxrError("Conversion run_addone_handler error: {x}");
+        }
+    };
+    */
+    println!("Function Params {:#?}", params);
+
+    let argument: i32 = *params.get(0).unwrap();
+
     println!("Function Argument {:#?}", argument);
 
     let result = argument + 1;
@@ -137,30 +152,25 @@ fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     let val = Value::try_from_value(&params[0]).ok().unwrap();
     println!("name {:?}", val);
 
-    let (a, b): (Value, Value) = TryFromParams::try_from_params(params)?;
+    let (method_name, method_params): (Value, Value) = TryFromParams::try_from_params(params)?;
 
-    println!("params a {:?}", a);
-    println!("params b {:#?}", b);
+    println!("method_name : {:?}", method_name);
+    println!("method_params : {:#?}", method_params);
 
-    let function: String = TryFromValue::try_from_value(&a)?;
+    let function: String = TryFromValue::try_from_value(&method_name)?;
     println!("Function {:#?}", function);
 
     let response: HandlerResult;
     if function == "Addone" {
-        TryFromValue::try_from_value(&b).unwrap_or_else(|_| println!("Oh-no, conversion failed"));
-        let params: Vec<i32> = TryFromValue::try_from_value(&b)?;
-        println!("Function Params {:#?}", params);
-
-        let argument: i32 = *params.get(0).unwrap();
-        response = run_adder_handler(argument);
+        response = run_addone_handler(&method_params);
     } else if function == "Strings Should Be Equal" {
-        let (s1, s2): (String, String) = TryFromValue::try_from_value(&b)?;
+        let (s1, s2): (String, String) = TryFromValue::try_from_value(&method_params)?;
         println!("Function Params {:#?}", params);
 
         response = run_strings_should_be_equal(&s1, &s2);
     } else if function == "Count Items In Directory" {
         //let s1 : String = TryFromValue::try_from_value(&b)?;
-        let s1: Vec<String> = TryFromValue::try_from_value(&b).unwrap();
+        let s1: Vec<String> = TryFromValue::try_from_value(&method_params).unwrap();
         println!("Function Params {:#?}", params);
         response = run_count_items_in_directory(&s1);
         println!("Response {:#?}", response);
