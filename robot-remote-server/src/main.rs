@@ -154,6 +154,7 @@ mod tests {
 
     #[test]
     fn test_count_items_in_directory() {
+        // TODO fix very ugly conversions
         let dir = String::from(
             "/home/micha/Repos/robot-remote-server-rs/tests/PythonRemoteServer_example",
         );
@@ -170,6 +171,25 @@ mod tests {
         let themap: std::collections::HashMap<String, Value> =
             TryFromValue::try_from_value(&response).unwrap();
         //println!("{:#?}", response);
+
+        let status = &themap["status"];
+        let stat = <String as TryFromValue>::try_from_value(status).unwrap(); // WTH rustc --explain E0790
+        assert_eq!(stat, "PASS");
+
+        let return_value = &themap["return"];
+        let return_val = <i32 as TryFromValue>::try_from_value(return_value).unwrap(); // WTH rustc --explain E0790
+        assert_eq!(return_val, 1);
+    }
+
+    #[test]
+    fn test_run_count_items_in_directory() {
+        // TODO fix very ugly conversions
+        let params = vec![Value::string(String::from("/tmp"))];
+        let params2 = TryToValue::try_to_value(&params).unwrap();
+        let response: Value = run_count_items_in_directory(&params2).unwrap();
+
+        let themap: std::collections::HashMap<String, Value> =
+            TryFromValue::try_from_value(&response).unwrap();
 
         let status = &themap["status"];
         let stat = <String as TryFromValue>::try_from_value(status).unwrap(); // WTH rustc --explain E0790
