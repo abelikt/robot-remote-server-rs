@@ -97,8 +97,8 @@ fn run_count_items_in_directory(value: &Value) -> HandlerResult {
 }
 
 fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
-    let val = &params[0];
-    println!("run_keyword_handler: {:?}", val);
+    //let val = &params[0];
+    println!("run_keyword_handler: {:?}", params);
 
     let (method_name, method_params): (Value, Value) = TryFromParams::try_from_params(params)?;
 
@@ -118,7 +118,7 @@ fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     let fun: &fn(&Value) -> HandlerResult = run_handler.get(&method_name as &str).unwrap();
     response = fun(&method_params);
 
-    println!("Response {:#?}", response);
+    println!("run_keyword_handler Response {:?}", response);
     response
 }
 
@@ -145,4 +145,38 @@ async fn main() {
         .serve("0.0.0.0:8270".parse().unwrap())
         .await
         .expect("Failed to run server.")
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_count_items_in_directory() {
+        let dir = String::from(
+            "/home/micha/Repos/robot-remote-server-rs/tests/PythonRemoteServer_example",
+        );
+        let v = Value::string(dir);
+        let values = TryToValue::try_to_value(&vec![v]).expect("Cannot convert");
+        let params = vec![
+            Value::string(String::from("Count Items In Directory")),
+            values,
+        ];
+        let headers = HeaderMap::new();
+
+        let response: Value = run_keyword_handler(&params, headers).unwrap();
+
+        let themap: std::collections::HashMap<String, Value> =
+            TryFromValue::try_from_value(&response).unwrap();
+        //println!("{:#?}", response);
+
+        let status = &themap["status"];
+        let stat = <String as TryFromValue>::try_from_value(status).unwrap(); // WTH rustc --explain E0790
+        assert_eq!(stat, "PASS");
+
+        let return_value = &themap["return"];
+        let return_val = <i32 as TryFromValue>::try_from_value(return_value).unwrap(); // WTH rustc --explain E0790
+        assert_eq!(return_val, 1);
+    }
 }
