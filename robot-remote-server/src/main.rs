@@ -112,14 +112,8 @@ fn run_strings_should_be_equal(s1: &str, s2: &str) -> HandlerResult {
     let mut response = HashMap::<&str, Value>::new();
 
     let status = if s1 == s2 { "PASS" } else { "FAIL" };
-    let result = if s1 == s2 {
-        "Result pass"
-    } else {
-        "Result fail"
-    };
 
     response.insert("status", status.try_to_value()?);
-    response.insert("return", result.try_to_value()?);
     response.insert(
         "output",
         format!("Comparing '{}' to '{}'.", s1, s2).try_to_value()?,
