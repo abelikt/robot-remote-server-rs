@@ -5,10 +5,11 @@
 
 https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#remote-library-interface
 
+Docs:
+
 https://https://docs.rs/dxr_client/latest/dxr_client/
 https://docs.rs/dxr/latest/dxr/
 https://docs.rs/dxr_server/latest/dxr_server/
-
 https://docs.rs/dxr/latest/dxr/struct.Value.html
 
 cd /home/micha/Repos/PythonRemoteServer_abelikt
@@ -17,46 +18,10 @@ robot example/tests.robot
 
 */
 
-use std::sync::RwLock;
-
-use dxr::{Fault, TryFromParams, TryFromValue, TryToValue, Value};
-use dxr_server::{
-    async_trait, axum::http::HeaderMap, Handler, HandlerFn, HandlerResult, RouteBuilder, Server,
-};
+use dxr::{TryFromParams, TryFromValue, TryToValue, Value};
+use dxr_server::{axum::http::HeaderMap, HandlerFn, HandlerResult, RouteBuilder, Server};
 
 use std::collections::HashMap;
-
-struct CounterHandler {
-    counter: RwLock<u32>,
-}
-
-impl CounterHandler {
-    fn new(init: u32) -> CounterHandler {
-        CounterHandler {
-            counter: RwLock::new(init),
-        }
-    }
-}
-
-#[async_trait]
-impl Handler for CounterHandler {
-    async fn handle(&self, _params: &[Value], _headers: HeaderMap) -> HandlerResult {
-        let mut value = self.counter.write().unwrap();
-        let result = (*value as i32).try_to_value()?;
-        *value += 1;
-        Ok(result)
-    }
-}
-
-fn hello_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
-    let name = String::try_from_params(params)?;
-    Ok(format!("Handler function says: Hello, {name}!").try_to_value()?)
-}
-
-fn adder_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
-    let (a, b): (i32, i32) = TryFromParams::try_from_params(params)?;
-    Ok((a + b).try_to_value()?)
-}
 
 //get_keyword_names
 
@@ -95,7 +60,10 @@ fn run_addone_handler(value: &Value) -> HandlerResult {
     let mut response = HashMap::<&str, Value>::new();
     response.insert("status", "PASS".try_to_value()?);
     response.insert("return", result.try_to_value()?);
-    response.insert("output", "lalaland".try_to_value()?);
+    response.insert(
+        "output",
+        format!("Adding one to {}", argument).try_to_value()?,
+    );
 
     Ok(response.try_to_value()?)
 }
@@ -144,12 +112,6 @@ fn run_count_items_in_directory(value: &Value) -> HandlerResult {
 }
 
 fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
-    // run_keyword_handler [Value { value: String("addme") }, Value { value: Array { data: ArrayData { values: [Value { value: Integer(33) }] } } }]
-    println!("run_keyword_handler {:?}", params);
-    println!("run_keyword_handler {:#?}", params);
-
-    // https://docs.rs/dxr/0.6.2/dxr/struct.Value.html
-
     let val = &params[0];
     println!("param 0 {:?}", val);
 
@@ -171,7 +133,7 @@ fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     run_handler.insert("Count Items In Directory", run_count_items_in_directory);
 
     let response: HandlerResult;
-    let fun : &fn(&Value)->HandlerResult = run_handler.get(&function as &str).unwrap();
+    let fun: &fn(&Value) -> HandlerResult = run_handler.get(&function as &str).unwrap();
     response = fun(&method_params);
 
     println!("Response {:#?}", response);
@@ -180,19 +142,13 @@ fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
 
 #[tokio::main]
 async fn main() {
-    let counter_handler = CounterHandler::new(0);
-
     let route = RouteBuilder::new()
         .set_path("/RPC2")
-        .add_method("hello", Box::new(hello_handler as HandlerFn))
-        .add_method("countme", Box::new(counter_handler))
-        .add_method("add", Box::new(adder_handler as HandlerFn))
         .add_method(
             "get_keyword_names",
             Box::new(get_keyword_names_handler as HandlerFn),
         )
         .add_method("run_keyword", Box::new(run_keyword_handler as HandlerFn))
-        .add_method("run_adder", Box::new(run_keyword_handler as HandlerFn))
         .build();
 
     let mut server = Server::from_route(route);
