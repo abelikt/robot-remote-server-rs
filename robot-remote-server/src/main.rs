@@ -38,22 +38,14 @@ fn get_keyword_names_handler(params: &[Value], _headers: HeaderMap) -> HandlerRe
 }
 
 fn run_addone_handler(value: &Value) -> HandlerResult {
-    TryFromValue::try_from_value(&value).unwrap_or_else(|_| println!("Oh-no, conversion failed"));
+    //TryFromValue::try_from_value(&value).unwrap_or_else(|_| println!("Oh-no, conversion failed"));
     let params: Vec<i32> = TryFromValue::try_from_value(&value)?;
-    /*let params: Vec<i32>;
-    match TryFromValue::try_from_value(&value) {
-        Result(x) => {params=x},
-        DxrError(x) => {
-            println!("Conversion run_addone_handler error: {x}");
-            return DxrError("Conversion run_addone_handler error: {x}");
-        }
-    };
-    */
-    println!("Function Params {:#?}", params);
+
+    println!("Function Params {:?}", params);
 
     let argument: i32 = *params.get(0).unwrap();
 
-    println!("Function Argument {:#?}", argument);
+    println!("Function Argument {:?}", argument);
 
     let result = argument + 1;
 
@@ -70,8 +62,7 @@ fn run_addone_handler(value: &Value) -> HandlerResult {
 
 fn run_strings_should_be_equal(value: &Value) -> HandlerResult {
     let (s1, s2): (String, String) = TryFromValue::try_from_value(&value)?;
-
-    println!("Function Argument {:#?}", (&s1, &s2));
+    println!("Function Argument {:?}", (&s1, &s2));
     let mut response = HashMap::<&str, Value>::new();
 
     let status;
@@ -98,7 +89,7 @@ fn run_strings_should_be_equal(value: &Value) -> HandlerResult {
 
 fn run_count_items_in_directory(value: &Value) -> HandlerResult {
     let s1: Vec<String> = TryFromValue::try_from_value(&value).unwrap();
-    println!("Function Params {:#?}", s1);
+    println!("Function Params {:?}", s1);
 
     let mut response = HashMap::<&str, Value>::new();
 
@@ -113,18 +104,15 @@ fn run_count_items_in_directory(value: &Value) -> HandlerResult {
 
 fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     let val = &params[0];
-    println!("param 0 {:?}", val);
-
-    let val = Value::try_from_value(&params[0]).ok().unwrap();
-    println!("name {:?}", val);
+    println!("run_keyword_handler: {:?}", val);
 
     let (method_name, method_params): (Value, Value) = TryFromParams::try_from_params(params)?;
 
-    println!("method_name : {:?}", method_name);
-    println!("method_params : {:?}", method_params);
+    println!("method_name as value: {:?}", method_name);
+    println!("method_params as value: {:?}", method_params);
 
-    let function: String = TryFromValue::try_from_value(&method_name)?;
-    println!("Function {:?}", function);
+    let method_name: String = TryFromValue::try_from_value(&method_name)?;
+    println!("method_name {:?}", method_name);
 
     let mut run_handler = HashMap::<&str, fn(&Value) -> HandlerResult>::new();
 
@@ -133,7 +121,7 @@ fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     run_handler.insert("Count Items In Directory", run_count_items_in_directory);
 
     let response: HandlerResult;
-    let fun: &fn(&Value) -> HandlerResult = run_handler.get(&function as &str).unwrap();
+    let fun: &fn(&Value) -> HandlerResult = run_handler.get(&method_name as &str).unwrap();
     response = fun(&method_params);
 
     println!("Response {:#?}", response);
