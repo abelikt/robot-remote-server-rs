@@ -128,19 +128,15 @@ fn run_strings_should_be_equal(s1: &str, s2: &str) -> HandlerResult {
     Ok(response.try_to_value()?)
 }
 
-fn run_count_items_in_directory(s1: &Vec<String>) -> HandlerResult {
-    let result = "Result, ist egal?";
+fn run_count_items_in_directory(_s1: &Vec<String>) -> HandlerResult {
     use std::collections::HashMap;
     let mut response = HashMap::<&str, Value>::new();
 
     let status = "PASS";
+    let result = 1;
 
-    response.insert("status", status.try_to_value()?);
     response.insert("return", result.try_to_value()?);
-    response.insert(
-        "output",
-        format!("Super duper output from {}", s1[0]).try_to_value()?,
-    );
+    response.insert("status", status.try_to_value()?);
 
     Ok(response.try_to_value()?)
 }
