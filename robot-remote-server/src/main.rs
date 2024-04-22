@@ -1,34 +1,28 @@
 // Based on code from dxr
 // https://github.com/ironthree/dxr/blob/main/dxr_tests/examples/server.rs
 
-/*
-
-https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#remote-library-interface
-
-Docs:
-
-https://https://docs.rs/dxr_client/latest/dxr_client/
-https://docs.rs/dxr/latest/dxr/
-https://docs.rs/dxr_server/latest/dxr_server/
-https://docs.rs/dxr/latest/dxr/struct.Value.html
-
-cd /home/micha/Repos/PythonRemoteServer_abelikt
-. venv/bin/activate
-robot example/tests.robot
-
-*/
+//! Docs:
+//! =====
+//!
+//! https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#remote-library-interface
+//!
+//! https://https://docs.rs/dxr_client/latest/dxr_client/
+//! https://docs.rs/dxr/latest/dxr/
+//! https://docs.rs/dxr_server/latest/dxr_server/
+//! https://docs.rs/dxr/latest/dxr/struct.Value.html
+//!
+//! cd /home/micha/Repos/PythonRemoteServer_abelikt
+//! . venv/bin/activate
+//! robot example/tests.robot
 
 use dxr::{TryFromParams, TryFromValue, TryToValue, Value};
 use dxr_server::{axum::http::HeaderMap, HandlerFn, HandlerResult, RouteBuilder, Server};
 
 use std::collections::HashMap;
 
-//get_keyword_names
-
 fn get_keyword_names_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     println!("get_keyword_names_handler {:?}", params);
 
-    //let name = String::try_from_params(params)?;
     let response = vec![
         "Addone".to_string(),
         "Strings Should Be Equal".to_string(),
