@@ -23,3 +23,8 @@ Failing Example
     #Strings Should Be Equal    not      equal
     Run Keyword and Expect Error    Given strings are not equal.    Strings Should Be Equal    not      equal
 
+Adder
+    ${result} =    Addone    ${42}
+    Should Be Equal    ${result}    ${43}
+
+

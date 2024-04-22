@@ -85,17 +85,17 @@ fn get_keyword_names_handler(params: &[Value], _headers: HeaderMap) -> HandlerRe
 
     //let name = String::try_from_params(params)?;
     let response = vec![
-        "addme".to_string(),
+        "Addone".to_string(),
         "Strings Should Be Equal".to_string(),
         "Count Items In Directory".to_string(),
     ];
     Ok(response.try_to_value()?)
 }
 
-fn run_addme(argument: i32) -> HandlerResult {
+fn run_adder_handler(argument: i32) -> HandlerResult {
     println!("Function Argument {:#?}", argument);
 
-    let result = argument + 9;
+    let result = argument + 1;
 
     use std::collections::HashMap;
     let mut response = HashMap::<&str, Value>::new();
@@ -168,13 +168,13 @@ fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     println!("Function {:#?}", function);
 
     let response: HandlerResult;
-    if function == "addme" {
+    if function == "Addone" {
         TryFromValue::try_from_value(&b).unwrap_or_else(|_| println!("Oh-no, conversion failed"));
         let params: Vec<i32> = TryFromValue::try_from_value(&b)?;
         println!("Function Params {:#?}", params);
 
         let argument: i32 = *params.get(0).unwrap();
-        response = run_addme(argument);
+        response = run_adder_handler(argument);
     } else if function == "Strings Should Be Equal" {
         let (s1, s2): (String, String) = TryFromValue::try_from_value(&b)?;
         println!("Function Params {:#?}", params);
@@ -208,6 +208,7 @@ async fn main() {
             Box::new(get_keyword_names_handler as HandlerFn),
         )
         .add_method("run_keyword", Box::new(run_keyword_handler as HandlerFn))
+        .add_method("run_adder", Box::new(run_keyword_handler as HandlerFn))
         .build();
 
     let mut server = Server::from_route(route);
