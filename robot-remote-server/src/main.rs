@@ -24,6 +24,8 @@ use dxr_server::{
     async_trait, axum::http::HeaderMap, Handler, HandlerFn, HandlerResult, RouteBuilder, Server,
 };
 
+use std::collections::HashMap;
+
 struct CounterHandler {
     counter: RwLock<u32>,
 }
@@ -90,7 +92,6 @@ fn run_addone_handler(value: &Value) -> HandlerResult {
 
     let result = argument + 1;
 
-    use std::collections::HashMap;
     let mut response = HashMap::<&str, Value>::new();
     response.insert("status", "PASS".try_to_value()?);
     response.insert("return", result.try_to_value()?);
@@ -103,7 +104,6 @@ fn run_strings_should_be_equal(value: &Value) -> HandlerResult {
     let (s1, s2): (String, String) = TryFromValue::try_from_value(&value)?;
 
     println!("Function Argument {:#?}", (&s1, &s2));
-    use std::collections::HashMap;
     let mut response = HashMap::<&str, Value>::new();
 
     let status;
@@ -132,7 +132,6 @@ fn run_count_items_in_directory(value: &Value) -> HandlerResult {
     let s1: Vec<String> = TryFromValue::try_from_value(&value).unwrap();
     println!("Function Params {:#?}", s1);
 
-    use std::collections::HashMap;
     let mut response = HashMap::<&str, Value>::new();
 
     let status = "PASS";
@@ -160,21 +159,20 @@ fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     let (method_name, method_params): (Value, Value) = TryFromParams::try_from_params(params)?;
 
     println!("method_name : {:?}", method_name);
-    println!("method_params : {:#?}", method_params);
+    println!("method_params : {:?}", method_params);
 
     let function: String = TryFromValue::try_from_value(&method_name)?;
-    println!("Function {:#?}", function);
+    println!("Function {:?}", function);
+
+    let mut run_handler = HashMap::<&str, fn(&Value) -> HandlerResult>::new();
+
+    run_handler.insert("Addone", run_addone_handler);
+    run_handler.insert("Strings Should Be Equal", run_strings_should_be_equal);
+    run_handler.insert("Count Items In Directory", run_count_items_in_directory);
 
     let response: HandlerResult;
-    if function == "Addone" {
-        response = run_addone_handler(&method_params);
-    } else if function == "Strings Should Be Equal" {
-        response = run_strings_should_be_equal(&method_params);
-    } else if function == "Count Items In Directory" {
-        response = run_count_items_in_directory(&method_params);
-    } else {
-        response = Err(Fault::new(42, format!("Ooops keyword {}", function)));
-    }
+    let fun : &fn(&Value)->HandlerResult = run_handler.get(&function as &str).unwrap();
+    response = fun(&method_params);
 
     println!("Response {:#?}", response);
     response
