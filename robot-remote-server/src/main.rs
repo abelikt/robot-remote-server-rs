@@ -215,7 +215,25 @@ mod tests {
     }
 
     #[test]
-    fn test_count_items_in_directory() {
+    fn test_get_keyword_names_handler() {
+        let val = &vec![String::from("nope").try_to_value().unwrap()];
+        let response = get_keyword_names_handler(val, HeaderMap::new());
+
+        let response_expect = vec![
+            "Addone".to_string(),
+            "Strings Should Be Equal".to_string(),
+            "Count Items In Directory".to_string(),
+        ];
+
+        let themap: Vec<String> =
+            TryFromValue::try_from_value(&response.expect("Can't parse response"))
+                .expect("Cant convert response into HashMap");
+
+        assert_eq!(response_expect, themap);
+    }
+
+    #[test]
+    fn test_run_keyword_handler_with_count_items_in_directory() {
         // TODO fix very ugly conversions
         let dir = String::from(
             "/home/micha/Repos/robot-remote-server-rs/tests/PythonRemoteServer_example",
