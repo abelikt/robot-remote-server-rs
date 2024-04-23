@@ -152,6 +152,9 @@ mod tests {
 
     use super::*;
 
+    // TODO Simplfy validators
+    // TODO Validators for Errors
+
     fn validate_response_success_return_i32(response: HandlerResult) {
         let response_val: Value = (response).expect("Can't parse response");
         let themap: std::collections::HashMap<String, Value> =
