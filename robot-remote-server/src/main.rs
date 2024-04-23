@@ -76,6 +76,8 @@ impl<'a> KeywordDispatcher<'a> {
 async fn main() {
     let dispatcher = KeywordDispatcher::new();
 
+    // TODO How can we trick this into using our dispatcher instance?
+    // That's the Fn interface we need to adhere:
     // pub type HandlerFn = fn(params: &[Value], headers: HeaderMap) -> HandlerResult
 
     let route = RouteBuilder::new()
