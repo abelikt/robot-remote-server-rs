@@ -152,7 +152,7 @@ mod tests {
 
     use super::*;
 
-    fn validate_response_success_i32(response: HandlerResult) {
+    fn validate_response_success_return_i32(response: HandlerResult) {
         let response_val: Value = (response).expect("Can't parse response");
         let themap: std::collections::HashMap<String, Value> =
             TryFromValue::try_from_value(&response_val).expect("Can't parse response_val");
@@ -169,6 +169,23 @@ mod tests {
         assert_eq!(return_val, 1);
     }
 
+    fn validate_response_success(response: HandlerResult, output_expect: &str) {
+        let response_val: Value = (response).expect("Can't parse response");
+        let themap: std::collections::HashMap<String, Value> =
+            TryFromValue::try_from_value(&response_val).expect("Can't parse response_val");
+
+        let status = &themap["status"];
+        // WTH rustc --explain E0790
+        let stat = <String as TryFromValue>::try_from_value(status).expect("Can't convert status");
+        assert_eq!(stat, "PASS");
+
+        let output_map = &themap["output"];
+        let output =
+            <String as TryFromValue>::try_from_value(output_map).expect("Can't convert status");
+
+        assert_eq!(output_expect, output);
+    }
+
     #[test]
     fn test_count_items_in_directory() {
         // TODO fix very ugly conversions
@@ -176,24 +193,39 @@ mod tests {
             "/home/micha/Repos/robot-remote-server-rs/tests/PythonRemoteServer_example",
         );
         let v = Value::string(dir);
-        let values = TryToValue::try_to_value(&vec![v]).expect("Cannot convert");
+        let params_vec = TryToValue::try_to_value(&vec![v]).expect("Cannot convert");
         let params = vec![
             Value::string(String::from("Count Items In Directory")),
-            values,
+            params_vec,
         ];
         let headers = HeaderMap::new();
         let response: HandlerResult = run_keyword_handler(&params, headers);
 
-        validate_response_success_i32(response);
+        validate_response_success_return_i32(response);
     }
 
     #[test]
     fn test_run_count_items_in_directory() {
         // TODO fix very ugly conversions
-        let params = vec![Value::string(String::from("/tmp"))];
-        let params2 = TryToValue::try_to_value(&params).unwrap();
-        let response: HandlerResult = run_count_items_in_directory(&params2);
+        let params_vec = vec![Value::string(String::from("/tmp"))];
+        let params = TryToValue::try_to_value(&params_vec).unwrap();
+        let response: HandlerResult = run_count_items_in_directory(&params);
 
-        validate_response_success_i32(response);
+        validate_response_success_return_i32(response);
+    }
+
+    #[test]
+    fn test_run_strings_should_be_equal() {
+        let s1 = "Equal";
+        let s2 = "Equal";
+        let params_vec = vec![
+            Value::string(String::from("Equal")),
+            Value::string(String::from("Equal")),
+        ];
+        let params = TryToValue::try_to_value(&params_vec).unwrap();
+
+        let response: HandlerResult = run_strings_should_be_equal(&params);
+
+        validate_response_success(response, &format!("Comparing '{}' to '{}'.", &s1, &s2));
     }
 }
