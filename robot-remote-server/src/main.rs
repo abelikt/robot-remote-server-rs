@@ -152,6 +152,21 @@ mod tests {
 
     use super::*;
 
+    fn validate_response_sucess_i32(response: HandlerResult) {
+        let response_val: Value = (response).unwrap();
+        let themap: std::collections::HashMap<String, Value> =
+            TryFromValue::try_from_value(&response_val).unwrap();
+        //println!("{:#?}", response);
+
+        let status = &themap["status"];
+        let stat = <String as TryFromValue>::try_from_value(status).unwrap(); // WTH rustc --explain E0790
+        assert_eq!(stat, "PASS");
+
+        let return_value = &themap["return"];
+        let return_val = <i32 as TryFromValue>::try_from_value(return_value).unwrap(); // WTH rustc --explain E0790
+        assert_eq!(return_val, 1);
+    }
+
     #[test]
     fn test_count_items_in_directory() {
         // TODO fix very ugly conversions
@@ -165,20 +180,9 @@ mod tests {
             values,
         ];
         let headers = HeaderMap::new();
+        let response: HandlerResult = run_keyword_handler(&params, headers);
 
-        let response: Value = run_keyword_handler(&params, headers).unwrap();
-
-        let themap: std::collections::HashMap<String, Value> =
-            TryFromValue::try_from_value(&response).unwrap();
-        //println!("{:#?}", response);
-
-        let status = &themap["status"];
-        let stat = <String as TryFromValue>::try_from_value(status).unwrap(); // WTH rustc --explain E0790
-        assert_eq!(stat, "PASS");
-
-        let return_value = &themap["return"];
-        let return_val = <i32 as TryFromValue>::try_from_value(return_value).unwrap(); // WTH rustc --explain E0790
-        assert_eq!(return_val, 1);
+        validate_response_sucess_i32(response);
     }
 
     #[test]
@@ -186,17 +190,8 @@ mod tests {
         // TODO fix very ugly conversions
         let params = vec![Value::string(String::from("/tmp"))];
         let params2 = TryToValue::try_to_value(&params).unwrap();
-        let response: Value = run_count_items_in_directory(&params2).unwrap();
+        let response: HandlerResult = run_count_items_in_directory(&params2);
 
-        let themap: std::collections::HashMap<String, Value> =
-            TryFromValue::try_from_value(&response).unwrap();
-
-        let status = &themap["status"];
-        let stat = <String as TryFromValue>::try_from_value(status).unwrap(); // WTH rustc --explain E0790
-        assert_eq!(stat, "PASS");
-
-        let return_value = &themap["return"];
-        let return_val = <i32 as TryFromValue>::try_from_value(return_value).unwrap(); // WTH rustc --explain E0790
-        assert_eq!(return_val, 1);
+        validate_response_sucess_i32(response);
     }
 }
