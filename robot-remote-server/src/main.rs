@@ -20,6 +20,7 @@ use dxr_server::{axum::http::HeaderMap, HandlerFn, HandlerResult, RouteBuilder, 
 
 use std::collections::HashMap;
 
+// TODO Make this dynamic
 fn get_keyword_names_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
     println!("get_keyword_names_handler {:?}", params);
 
@@ -97,7 +98,6 @@ fn run_count_items_in_directory(value: &Value) -> HandlerResult {
 }
 
 fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
-    //let val = &params[0];
     println!("run_keyword_handler: {:?}", params);
 
     let (method_name, method_params): (Value, Value) = TryFromParams::try_from_params(params)?;
@@ -189,6 +189,28 @@ mod tests {
         assert_eq!(output_expect, output);
     }
 
+    fn validate_response_fail(response: HandlerResult, output_expect: &str) {
+        let response_val: Value = (response).expect("Can't parse response");
+        let themap: std::collections::HashMap<String, Value> =
+            TryFromValue::try_from_value(&response_val).expect("Can't parse response_val");
+
+        let status = &themap["status"];
+        // WTH rustc --explain E0790
+        let stat = <String as TryFromValue>::try_from_value(status).expect("Can't convert status");
+
+        assert_ne!(stat, "PASS");
+
+        let output_map = &themap["output"];
+        let output =
+            <String as TryFromValue>::try_from_value(output_map).expect("Can't convert status");
+        assert_eq!(output_expect, output);
+
+        let error_map = &themap["error"];
+        let error =
+            <String as TryFromValue>::try_from_value(error_map).expect("Can't convert status");
+        assert_eq!("Given strings are not equal.", error);
+    }
+
     fn validate_response_success_and_return_i32(
         response: HandlerResult,
         return_expect: i32,
@@ -273,6 +295,21 @@ mod tests {
         let response: HandlerResult = run_strings_should_be_equal(&params);
 
         validate_response_success(response, &format!("Comparing '{}' to '{}'.", &s1, &s2));
+    }
+
+    #[test]
+    fn test_run_strings_should_be_equal_fail() {
+        let s1 = "Fail";
+        let s2 = "Equal";
+        let params_vec = vec![
+            Value::string(String::from(s1)),
+            Value::string(String::from(s2)),
+        ];
+        let params = TryToValue::try_to_value(&params_vec).unwrap();
+
+        let response: HandlerResult = run_strings_should_be_equal(&params);
+
+        validate_response_fail(response, &format!("Comparing '{}' to '{}'.", &s1, &s2));
     }
 
     #[test]
