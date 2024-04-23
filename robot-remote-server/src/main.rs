@@ -23,52 +23,71 @@ use std::collections::HashMap;
 mod keywords;
 use keywords::*;
 
-// TODO Make this dynamic
-fn get_keyword_names_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
-    println!("get_keyword_names_handler {:?}", params);
-
-    let response = vec![
-        "Addone".to_string(),
-        "Strings Should Be Equal".to_string(),
-        "Count Items In Directory".to_string(),
-    ];
-    Ok(response.try_to_value()?)
+struct KeywordDispatcher<'a> {
+    run_handler: HashMap<&'a str, fn(&Value) -> HandlerResult>,
 }
 
-fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
-    println!("run_keyword_handler: {:?}", params);
+impl<'a> KeywordDispatcher<'a> {
+    pub fn new() -> Self {
+        Self {
+            run_handler: HashMap::<&str, fn(&Value) -> HandlerResult>::new(),
+        }
+    }
 
-    let (method_name, method_params): (Value, Value) = TryFromParams::try_from_params(params)?;
+    // TODO Make this dynamic
+    fn get_keyword_names_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
+        println!("get_keyword_names_handler {:?}", params);
 
-    println!("method_name as value: {:?}", method_name);
-    println!("method_params as value: {:?}", method_params);
+        let response = vec![
+            "Addone".to_string(),
+            "Strings Should Be Equal".to_string(),
+            "Count Items In Directory".to_string(),
+        ];
+        Ok(response.try_to_value()?)
+    }
 
-    let method_name: String = TryFromValue::try_from_value(&method_name)?;
-    println!("method_name {:?}", method_name);
+    pub fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
+        println!("run_keyword_handler: {:?}", params);
 
-    let mut run_handler = HashMap::<&str, fn(&Value) -> HandlerResult>::new();
+        let (method_name, method_params): (Value, Value) = TryFromParams::try_from_params(params)?;
 
-    run_handler.insert("Addone", keyword_addone);
-    run_handler.insert("Strings Should Be Equal", keyword_strings_should_be_equal);
-    run_handler.insert("Count Items In Directory", keyword_count_items_in_directory);
+        println!("method_name as value: {:?}", method_name);
+        println!("method_params as value: {:?}", method_params);
 
-    let response: HandlerResult;
-    let fun: &fn(&Value) -> HandlerResult = run_handler.get(&method_name as &str).unwrap();
-    response = fun(&method_params);
+        let method_name: String = TryFromValue::try_from_value(&method_name)?;
+        println!("method_name {:?}", method_name);
 
-    println!("run_keyword_handler Response {:?}", response);
-    response
+        let mut run_handler = HashMap::<&str, fn(&Value) -> HandlerResult>::new();
+
+        run_handler.insert("Addone", keyword_addone);
+        run_handler.insert("Strings Should Be Equal", keyword_strings_should_be_equal);
+        run_handler.insert("Count Items In Directory", keyword_count_items_in_directory);
+
+        let response: HandlerResult;
+        let fun: &fn(&Value) -> HandlerResult = run_handler.get(&method_name as &str).unwrap();
+        response = fun(&method_params);
+
+        println!("run_keyword_handler Response {:?}", response);
+        response
+    }
 }
 
 #[tokio::main]
 async fn main() {
+    let dispatcher = KeywordDispatcher::new();
+
+    // pub type HandlerFn = fn(params: &[Value], headers: HeaderMap) -> HandlerResult
+
     let route = RouteBuilder::new()
         .set_path("/RPC2")
         .add_method(
             "get_keyword_names",
-            Box::new(get_keyword_names_handler as HandlerFn),
+            Box::new(KeywordDispatcher::get_keyword_names_handler as HandlerFn),
         )
-        .add_method("run_keyword", Box::new(run_keyword_handler as HandlerFn))
+        .add_method(
+            "run_keyword",
+            Box::new(KeywordDispatcher::run_keyword_handler as HandlerFn),
+        )
         .build();
 
     let mut server = Server::from_route(route);
@@ -98,7 +117,7 @@ mod tests {
     #[test]
     fn test_get_keyword_names_handler() {
         let val = &vec![String::from("nope").try_to_value().unwrap()];
-        let response = get_keyword_names_handler(val, HeaderMap::new());
+        let response = KeywordDispatcher::get_keyword_names_handler(val, HeaderMap::new());
 
         let response_expect = vec![
             "Addone".to_string(),
@@ -126,7 +145,7 @@ mod tests {
             params_vec,
         ];
         let headers = HeaderMap::new();
-        let response: HandlerResult = run_keyword_handler(&params, headers);
+        let response: HandlerResult = KeywordDispatcher::run_keyword_handler(&params, headers);
 
         validate_response_success_return_i32(response);
     }
