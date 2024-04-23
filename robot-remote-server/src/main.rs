@@ -152,7 +152,7 @@ mod tests {
 
     use super::*;
 
-    fn validate_response_sucess_i32(response: HandlerResult) {
+    fn validate_response_success_i32(response: HandlerResult) {
         let response_val: Value = (response).expect("Can't parse response");
         let themap: std::collections::HashMap<String, Value> =
             TryFromValue::try_from_value(&response_val).expect("Can't parse response_val");
@@ -184,7 +184,7 @@ mod tests {
         let headers = HeaderMap::new();
         let response: HandlerResult = run_keyword_handler(&params, headers);
 
-        validate_response_sucess_i32(response);
+        validate_response_success_i32(response);
     }
 
     #[test]
@@ -194,6 +194,6 @@ mod tests {
         let params2 = TryToValue::try_to_value(&params).unwrap();
         let response: HandlerResult = run_count_items_in_directory(&params2);
 
-        validate_response_sucess_i32(response);
+        validate_response_success_i32(response);
     }
 }
