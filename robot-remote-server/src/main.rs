@@ -153,17 +153,19 @@ mod tests {
     use super::*;
 
     fn validate_response_sucess_i32(response: HandlerResult) {
-        let response_val: Value = (response).unwrap();
+        let response_val: Value = (response).expect("Can't parse response");
         let themap: std::collections::HashMap<String, Value> =
-            TryFromValue::try_from_value(&response_val).unwrap();
+            TryFromValue::try_from_value(&response_val).expect("Can't parse response_val");
         //println!("{:#?}", response);
 
         let status = &themap["status"];
-        let stat = <String as TryFromValue>::try_from_value(status).unwrap(); // WTH rustc --explain E0790
+        // WTH rustc --explain E0790
+        let stat = <String as TryFromValue>::try_from_value(status).expect("Can't convert status");
         assert_eq!(stat, "PASS");
 
         let return_value = &themap["return"];
-        let return_val = <i32 as TryFromValue>::try_from_value(return_value).unwrap(); // WTH rustc --explain E0790
+        let return_val = <i32 as TryFromValue>::try_from_value(return_value)
+            .expect("Can't convert return_value");
         assert_eq!(return_val, 1);
     }
 
