@@ -186,6 +186,31 @@ mod tests {
         assert_eq!(output_expect, output);
     }
 
+    fn validate_response_success_and_return_i32(
+        response: HandlerResult,
+        return_expect: i32,
+        output_expect: &str,
+    ) {
+        let response_val: Value = (response).expect("Can't parse response");
+        let themap: std::collections::HashMap<String, Value> =
+            TryFromValue::try_from_value(&response_val).expect("Can't parse response_val");
+
+        let status = &themap["status"];
+        // WTH rustc --explain E0790
+        let stat = <String as TryFromValue>::try_from_value(status).expect("Can't convert status");
+        assert_eq!(stat, "PASS");
+
+        let output_map = &themap["output"];
+        let output =
+            <String as TryFromValue>::try_from_value(output_map).expect("Can't convert status");
+        assert_eq!(output_expect, output);
+
+        let return_map = &themap["return"];
+        let return_val =
+            <i32 as TryFromValue>::try_from_value(return_map).expect("Can't convert status");
+        assert_eq!(return_expect, return_val);
+    }
+
     #[test]
     fn test_count_items_in_directory() {
         // TODO fix very ugly conversions
@@ -219,13 +244,23 @@ mod tests {
         let s1 = "Equal";
         let s2 = "Equal";
         let params_vec = vec![
-            Value::string(String::from("Equal")),
-            Value::string(String::from("Equal")),
+            Value::string(String::from(s1)),
+            Value::string(String::from(s2)),
         ];
         let params = TryToValue::try_to_value(&params_vec).unwrap();
 
         let response: HandlerResult = run_strings_should_be_equal(&params);
 
         validate_response_success(response, &format!("Comparing '{}' to '{}'.", &s1, &s2));
+    }
+
+    #[test]
+    fn test_run_addone_handler() {
+        let params_vec = vec![Value::i4(88)];
+        let params = TryToValue::try_to_value(&params_vec).unwrap();
+
+        let response: HandlerResult = run_addone_handler(&params);
+
+        validate_response_success_and_return_i32(response, 89, &format!("Adding one to 88"));
     }
 }
