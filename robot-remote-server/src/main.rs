@@ -15,7 +15,7 @@
 //! . venv/bin/activate
 //! robot example/tests.robot
 
-use dxr::{TryFromParams, TryFromValue, TryToValue, Value};
+use dxr::{Fault, TryFromParams, TryFromValue, TryToValue, Value};
 use dxr_server::{axum::http::HeaderMap, HandlerFn, HandlerResult, RouteBuilder, Server};
 
 use std::collections::HashMap;
@@ -46,6 +46,17 @@ impl<'a> KeywordDispatcher<'a> {
         Ok(response.try_to_value()?)
     }
 
+    fn insert(&mut self, key: &'a str, value: fn(&Value) -> HandlerResult) {
+        match self.run_handler.insert(key, value) {
+            Some(_) => println!("Inserted"),
+            None => println!("Can't insert"),
+        }
+    }
+
+    fn get(&self, key: &str) -> Option<fn(&Value) -> HandlerResult> {
+        self.run_handler.get(key).copied()
+    }
+
     pub fn run_keyword_handler(params: &[Value], _headers: HeaderMap) -> HandlerResult {
         println!("run_keyword_handler: {:?}", params);
 
@@ -57,24 +68,32 @@ impl<'a> KeywordDispatcher<'a> {
         let method_name: String = TryFromValue::try_from_value(&method_name)?;
         println!("method_name {:?}", method_name);
 
-        let mut run_handler = HashMap::<&str, fn(&Value) -> HandlerResult>::new();
-
-        run_handler.insert("Addone", keyword_addone);
-        run_handler.insert("Strings Should Be Equal", keyword_strings_should_be_equal);
-        run_handler.insert("Count Items In Directory", keyword_count_items_in_directory);
+        unsafe {
+            DISPATCHER.insert("Addone", keyword_addone);
+            DISPATCHER.insert("Strings Should Be Equal", keyword_strings_should_be_equal);
+            DISPATCHER.insert("Count Items In Directory", keyword_count_items_in_directory);
+        }
 
         let response: HandlerResult;
-        let fun: &fn(&Value) -> HandlerResult = run_handler.get(&method_name as &str).unwrap();
-        response = fun(&method_params);
+        unsafe {
+            let fun: fn(&Value) -> HandlerResult = DISPATCHER.get(&method_name as &str).unwrap();
+            response = fun(&method_params);
+        }
 
         println!("run_keyword_handler Response {:?}", response);
         response
     }
 }
 
+use once_cell::sync::Lazy;
+
+static mut DISPATCHER: Lazy<KeywordDispatcher> = Lazy::new(|| {
+    let m = KeywordDispatcher::new();
+    m
+});
+
 #[tokio::main]
 async fn main() {
-    let dispatcher = KeywordDispatcher::new();
 
     // TODO How can we trick this into using our dispatcher instance?
     // That's the Fn interface we need to adhere:
