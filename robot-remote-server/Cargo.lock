@@ -552,6 +552,7 @@ dependencies = [
  "chrono",
  "dxr",
  "dxr_server",
+ "once_cell",
  "tokio",
 ]
 
