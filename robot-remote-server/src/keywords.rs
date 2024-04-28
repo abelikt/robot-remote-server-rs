@@ -8,19 +8,18 @@ fn annotate_err(err: &DxrError) {
 }
 
 pub fn keyword_addone(value: &Value) -> HandlerResult {
-    let params: Vec<i32>;
-    match TryFromValue::try_from_value(&value) {
-        Ok(p) => params = p,
+    let params: Vec<i32> = match TryFromValue::try_from_value(value) {
+        Ok(p) => p,
         Err(e) => {
             annotate_err(&e);
             return Err(Fault::from(e));
         }
-    }
+    };
 
     println!("Function Params {:?}", params);
 
     let argument: i32 = *params
-        .get(0)
+        .first()
         .ok_or_else(|| Fault::new(400, format!("Can't parse parameter {:?}", params)))?;
 
     println!("Function Argument {:?}", argument);
@@ -39,16 +38,15 @@ pub fn keyword_addone(value: &Value) -> HandlerResult {
 }
 
 pub fn keyword_strings_should_be_equal(value: &Value) -> HandlerResult {
-    let (s1, s2): (String, String) = TryFromValue::try_from_value(&value)?;
+    let (s1, s2): (String, String) = TryFromValue::try_from_value(value)?;
     println!("Function Argument {:?}", (&s1, &s2));
     let mut response = HashMap::<&str, Value>::new();
 
     let status;
     let error;
-    let output;
     let traceback = "nice traceback";
 
-    output = format!("Comparing '{}' to '{}'.", &s1, &s2);
+    let output = format!("Comparing '{}' to '{}'.", &s1, &s2);
     response.insert("output", output.try_to_value()?);
 
     if s1 == s2 {
@@ -67,7 +65,7 @@ pub fn keyword_strings_should_be_equal(value: &Value) -> HandlerResult {
 
 // TODO Make this less static
 pub fn keyword_count_items_in_directory(value: &Value) -> HandlerResult {
-    let s1: Vec<String> = TryFromValue::try_from_value(&value).unwrap();
+    let s1: Vec<String> = TryFromValue::try_from_value(value).unwrap();
     println!("Function Params {:?}", s1);
 
     let mut response = HashMap::<&str, Value>::new();
