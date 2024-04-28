@@ -31,3 +31,7 @@ Adder Fails
     Run Keyword and Expect Error    Type mismatch:*    Addone    Nope
     Run Keyword and Expect Error    Can't parse parameter*    Addone
 
+    # TODO Does not match?
+    # Run Keyword and Expect Error    Can't parse parameter [1, 1]    Addone    ${1}    ${1}
+    Run Keyword and Expect Error    Can't parse parameter*    Addone    ${1}    ${1}
+

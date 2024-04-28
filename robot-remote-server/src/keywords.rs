@@ -18,6 +18,13 @@ pub fn keyword_addone(value: &Value) -> HandlerResult {
 
     println!("Function Params {:?}", params);
 
+    if params.len() != 1 {
+        return Err(Fault::new(
+            400,
+            format!("Can't parse parameter {:?}", params),
+        ));
+    }
+
     let argument: i32 = *params
         .first()
         .ok_or_else(|| Fault::new(400, format!("Can't parse parameter {:?}", params)))?;

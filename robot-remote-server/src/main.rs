@@ -16,6 +16,7 @@
 //! robot example/tests.robot
 
 // TODO: Avoid the unsafe
+// TODO: Improve error management, clone to console and pass info to RF
 // TODO: Idea: return HandlerResult, check with ?-Op and include file,lineno
 
 use dxr::{TryFromParams, TryFromValue, TryToValue, Value};
