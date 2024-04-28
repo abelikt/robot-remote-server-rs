@@ -1,11 +1,18 @@
-use dxr::{TryFromValue, TryToValue, Value};
+use dxr::{TryFromValue, TryToValue, Value, DxrError, Fault};
 use dxr_server::HandlerResult;
 
 use std::collections::HashMap;
 
+fn annotate_err(err : &DxrError ) {
+    dbg!("Keyword Error: {:?}", err);
+}
+
 pub fn keyword_addone(value: &Value) -> HandlerResult {
-    //TryFromValue::try_from_value(&value).unwrap_or_else(|_| println!("Oh-no, conversion failed"));
-    let params: Vec<i32> = TryFromValue::try_from_value(&value)?;
+    let params: Vec<i32>;
+    match TryFromValue::try_from_value(&value) {
+        Ok(p) => {params=p},
+        Err(e) => {annotate_err(&e); return Err( Fault::from(e) )}
+    }
 
     println!("Function Params {:?}", params);
 

@@ -27,4 +27,5 @@ Adder
     ${result} =    Addone    ${42}
     Should Be Equal    ${result}    ${43}
 
-
+Adder Fail
+    Run Keyword and Expect Error    Type mismatch:*    Addone    Nope
