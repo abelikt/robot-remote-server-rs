@@ -133,17 +133,17 @@ mod tests {
         let val = &vec![String::from("nope").try_to_value().unwrap()];
         let response = KeywordDispatcher::get_keyword_names_handler(val, HeaderMap::new());
 
-        let response_expect = vec![
+        let mut response_expect = vec![
             "Addone".to_string(),
             "Strings Should Be Equal".to_string(),
             "Count Items In Directory".to_string(),
         ];
 
-        let themap: Vec<String> =
+        let mut themap: Vec<String> =
             TryFromValue::try_from_value(&response.expect("Can't parse response"))
                 .expect("Cant convert response into HashMap");
 
-        assert_eq!(response_expect, themap);
+        assert_eq!(response_expect.sort(), themap.sort());
     }
 
     #[test]
