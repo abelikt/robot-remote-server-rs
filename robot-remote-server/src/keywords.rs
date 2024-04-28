@@ -1,22 +1,27 @@
-use dxr::{TryFromValue, TryToValue, Value, DxrError, Fault};
+use dxr::{DxrError, Fault, TryFromValue, TryToValue, Value};
 use dxr_server::HandlerResult;
 
 use std::collections::HashMap;
 
-fn annotate_err(err : &DxrError ) {
+fn annotate_err(err: &DxrError) {
     dbg!("Keyword Error: {:?}", err);
 }
 
 pub fn keyword_addone(value: &Value) -> HandlerResult {
     let params: Vec<i32>;
     match TryFromValue::try_from_value(&value) {
-        Ok(p) => {params=p},
-        Err(e) => {annotate_err(&e); return Err( Fault::from(e) )}
+        Ok(p) => params = p,
+        Err(e) => {
+            annotate_err(&e);
+            return Err(Fault::from(e));
+        }
     }
 
     println!("Function Params {:?}", params);
 
-    let argument: i32 = *params.get(0).unwrap();
+    let argument: i32 = *params
+        .get(0)
+        .ok_or_else(|| Fault::new(400, format!("Can't parse parameter {:?}", params)))?;
 
     println!("Function Argument {:?}", argument);
 

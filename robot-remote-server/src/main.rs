@@ -16,6 +16,7 @@
 //! robot example/tests.robot
 
 // TODO: Avoid the unsafe
+// TODO: Idea: return HandlerResult, check with ?-Op and include file,lineno
 
 use dxr::{TryFromParams, TryFromValue, TryToValue, Value};
 use dxr_server::{axum::http::HeaderMap, HandlerFn, HandlerResult, RouteBuilder, Server};
@@ -91,7 +92,6 @@ static mut DISPATCHER: Lazy<KeywordDispatcher> = Lazy::new(|| {
 
 #[tokio::main]
 async fn main() {
-
     let route = RouteBuilder::new()
         .set_path("/RPC2")
         .add_method(
