@@ -39,3 +39,25 @@ TODO: We should swith to the newer api. Is there a useful example?
 See also:
 
 https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#toc-entry-640
+
+
+Usage
+=====
+
+Currently, this should work with a decent Linux system with an installed
+Rust toolchain.
+
+Start the server:
+
+    cd robot-remote-server
+    cargo run
+
+Start the client:
+
+    python3 -m venv venv
+    . venv/bin/activate
+    pip install robotframework
+    robot -d Reports tests/PythonRemoteServer_example/tests.robot
+
+
+
